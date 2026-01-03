@@ -10,6 +10,9 @@
             <a href="{{ url_for('voter.upload_excel') }}" class="btn btn-success action-btn">
                 <i class="fas fa-file-upload me-1"></i> Upload Excel
             </a>
+            <a href="{{ url_for('voter.star_report') }}" class="btn btn-info action-btn">
+                <i class="fas fa-file-excel me-1"></i> Star Report
+            </a>
             <form method="POST" action="{{ url_for('voter.clear_data') }}" onsubmit="return confirm('Are you sure you want to delete ALL voter data? This cannot be undone!');" style="display: inline;">
                 <button type="submit" class="btn btn-danger action-btn">
                     <i class="fas fa-trash me-1"></i> Clear All Data
@@ -66,13 +69,21 @@
             </div>
         </div>
         <div class="row g-3 mt-3">
-            <div class="col-md-10">
+            <div class="col-md-8">
                 <label class="form-label"><i class="fas fa-search text-primary"></i> General Search</label>
                 <input type="text" class="form-control" name="query" placeholder="Search in any field" value="{{ request.args.get('query', '') }}">
             </div>
             <div class="col-md-2">
                 <label class="form-label"><i class="fas fa-id-card text-primary"></i> Voting Card No</label>
                 <input type="text" class="form-control" name="voting_card_no" placeholder="Card number" value="{{ request.args.get('voting_card_no', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-star text-primary"></i> Star Status</label>
+                <select class="form-control" name="star_status">
+                    <option value="" {% if request.args.get('star_status') == '' %}selected{% endif %}>All Voters</option>
+                    <option value="with_stars" {% if request.args.get('star_status') == 'with_stars' %}selected{% endif %}>With Stars</option>
+                    <option value="without_stars" {% if request.args.get('star_status') == 'without_stars' %}selected{% endif %}>Without Stars</option>
+                </select>
             </div>
         </div>
         <div class="row g-3 mt-3">
@@ -192,6 +203,7 @@ function performRealTimeSearch() {
             gender: $('input[name="gender"]').val(),
             voting_card_no: $('input[name="voting_card_no"]').val(),
             karyakarta: $('input[name="karyakarta"]').val(),
+            star_status: $('select[name="star_status"]').val(),
             query: $('input[name="query"]').val()
         };
         
@@ -328,7 +340,7 @@ function updateSearchResults(voters) {
 
 $(document).ready(function() {
     // Add real-time search functionality to all input fields
-    $('input[name="voter_id"], input[name="full_name"], input[name="booth_no"], input[name="mobile_no"], input[name="yadibhag_no"], input[name="yadibhag_name"], input[name="voter_srno"], input[name="age"], input[name="gender"], input[name="voting_card_no"], input[name="karyakarta"], input[name="query"]').on('input', function() {
+    $('input[name="voter_id"], input[name="full_name"], input[name="booth_no"], input[name="mobile_no"], input[name="yadibhag_no"], input[name="yadibhag_name"], input[name="voter_srno"], input[name="age"], input[name="gender"], input[name="voting_card_no"], input[name="karyakarta"], input[name="query"], select[name="star_status"]').on('input change', function() {
         performRealTimeSearch();
     });
     

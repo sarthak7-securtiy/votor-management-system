@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_file
 from flask_login import login_required, current_user
 from app.models.voter import Voter
 from app.models.user import User
@@ -8,6 +8,9 @@ import pandas as pd
 import os
 from werkzeug.utils import secure_filename
 import re
+from datetime import datetime
+from openpyxl.styles import Font, PatternFill
+from openpyxl.styles.colors import Color
 
 voter_bp = Blueprint('voter', __name__)
 
@@ -324,9 +327,16 @@ def search():
     gender = request.args.get('gender', '')
     voting_card_no = request.args.get('voting_card_no', '')
     karyakarta = request.args.get('karyakarta', '')
+    star_status = request.args.get('star_status', '')
     
     # Build search query
     search_query = Voter.query
+    
+    # Apply star status filter if specified
+    if star_status == 'with_stars':
+        search_query = search_query.filter(Voter.star_rating > 0)
+    elif star_status == 'without_stars':
+        search_query = search_query.filter(Voter.star_rating == 0)
     
     # Check if any search parameter is provided
     if any([query, voter_id, full_name, booth_no, mobile_no, voting_card_no, yadibhag_no, yadibhag_name, voter_srno, age, gender, karyakarta]):
@@ -525,55 +535,78 @@ def preview_excel():
     
     file = request.files['file']
     
-    if file.filename == '':
-        return jsonify({'success': False, 'message': 'No file selected'}), 400
-    
-    if file and allowed_file(file.filename):
-        try:
-            # Save file temporarily
-            filename = secure_filename(file.filename)
-            temp_path = os.path.join('temp', filename)
-            
-            # Create temp directory if it doesn't exist
-            os.makedirs('temp', exist_ok=True)
-            
-            file.save(temp_path)
-            
-            # Read Excel file to preview
-            df = pd.read_excel(temp_path)
-            
-            # Check if voter ID column exists
-            voter_id_column_found = False
-            for col in df.columns:
-                col_lower = col.lower().strip()
-                if any(keyword in col_lower for keyword in ['voter', 'id', 'voterid', 'voter_id', 'voter id', 'srno', 'voter srno', 'voter_srno', 'votersrno', 'voting card no', 'voting card no.', 'voting_card_no']):
-                    voter_id_column_found = True
-                    break
-            
-            if not voter_id_column_found:
-                os.remove(temp_path)
-                return jsonify({'success': False, 'message': 'No Voter ID column found in Excel file. Please include a column with voter identification (e.g., voter_id, srno, voting card no, etc.)'}), 400
-            
-            # Get first 10 rows for preview
-            preview_data = df.head(10).to_dict('records')
-            
-            # Get all column names
-            columns = list(df.columns)
-            
-            # Remove temp file
-            os.remove(temp_path)
-            
-            return jsonify({
-                'success': True,
-                'columns': columns,
-                'preview_data': preview_data,
-                'total_rows': len(df)
-            })
+
+@voter_bp.route('/star_report')
+@login_required
+def star_report():
+    try:
+        # Get all voters with their star ratings
+        # Apply star status filter if specified in request args
+        star_status = request.args.get('star_status', '')
+        query = Voter.query
         
-        except Exception as e:
-            return jsonify({'success': False, 'message': f'Error reading Excel file: {str(e)}'}), 500
-    
-    return jsonify({'success': False, 'message': 'Invalid file type. Please upload .xlsx or .xls files'}), 400
+        if star_status == 'with_stars':
+            query = query.filter(Voter.star_rating > 0)
+        elif star_status == 'without_stars':
+            query = query.filter(Voter.star_rating == 0)
+        
+        voters = query.all()
+        
+        # Create a list of voter data for the report
+        report_data = []
+        for voter in voters:
+            star_count = voter.star_rating
+            star_status_text = f"{star_count} stars" if star_count > 0 else "No stars"
+            
+            # Get the user who gave the star by looking at the latest star log for this voter
+            latest_star_log = StarLog.query.filter_by(voter_id=voter.id).order_by(StarLog.timestamp.desc()).first()
+            star_given_by = "N/A"
+            if latest_star_log and latest_star_log.user:
+                star_given_by = latest_star_log.user.username
+            
+            report_data.append({
+                'Voter ID': voter.voter_id,
+                'Full Name': voter.get_display_name(),
+                'Voting Card No': voter.voting_card_no or 'N/A',
+                'Number of Stars': star_count,
+                'Star Status': star_status_text,
+                'Karyakarta Name': voter.karyakarta or 'N/A',
+                'Star Given By': star_given_by,
+                'Booth No': voter.booth_no or 'N/A',
+                'Mobile No': voter.mobile_no or 'N/A',
+            })
+
+        # Create DataFrame and generate Excel file
+        df = pd.DataFrame(report_data)
+        
+        # Create a temporary file
+        temp_filename = f"star_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        
+        # Create temp directory if it doesn't exist using absolute path
+        temp_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'temp')
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        # Update the temp_path to use the absolute path
+        temp_path = os.path.join(temp_dir, temp_filename)
+        
+        # Save to Excel
+        with pd.ExcelWriter(temp_path, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Star Report')
+            
+            # Access the workbook and worksheet to format headers
+            worksheet = writer.sheets['Star Report']
+            
+            # Format header row
+            for cell in worksheet[1]:
+                cell.font = Font(bold=True)
+                cell.fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+                cell.font = Font(color='FFFFFF', bold=True)
+        
+        # Send the file as a download
+        return send_file(temp_path, as_attachment=True, download_name=temp_filename)
+    except Exception as e:
+        flash(f'Error generating star report: {str(e)}', 'error')
+        return redirect(url_for('voter.search'))
 
 
 @voter_bp.route('/star/<int:voter_id>', methods=['POST'])
