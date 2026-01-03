@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}{{ voter.get_display_name() }} - Voter Management System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2><i class="fas fa-user me-2"></i>{{ voter.get_display_name() }}</h2>
+        <a href="{{ url_for('voter.search') }}" class="btn btn-secondary action-btn">
+            <i class="fas fa-arrow-left me-1"></i> Back to Search
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h4><i class="fas fa-id-card me-2"></i>Voter Information</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><i class="fas fa-id-card text-primary me-2"></i><strong>Voter ID:</strong></p>
+                        <p class="text-muted">{{ voter.voter_id }}</p>
+                        
+                        <p><i class="fas fa-user text-primary me-2"></i><strong>Full Name:</strong></p>
+                        <p class="text-muted">{{ voter.full_name or 'N/A' }}</p>
+                        
+                        <p><i class="fas fa-user text-primary me-2"></i><strong>First Name:</strong></p>
+                        <p class="text-muted">{{ voter.first_name or 'N/A' }}</p>
+                        
+                        <p><i class="fas fa-user-friends text-primary me-2"></i><strong>Father Name:</strong></p>
+                        <p class="text-muted">{{ voter.father_name or 'N/A' }}</p>
+                        
+                        <p><i class="fas fa-user-tag text-primary me-2"></i><strong>Surname:</strong></p>
+                        <p class="text-muted">{{ voter.surname or 'N/A' }}</p>
+                        
+                        <p><i class="fas fa-hashtag text-primary me-2"></i><strong>Yadibhag Number:</strong></p>
+                        <p class="text-muted">{{ voter.yadibhag_no or 'N/A' }}</p>
+                        
+                        <p><i class="fas fa-user-tag text-primary me-2"></i><strong>Voter Serial Number:</strong></p>
+                        <p class="text-muted">{{ voter.voter_srno or 'N/A' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><i class="fas fa-hashtag text-primary me-2"></i><strong>Booth Number:</strong></p>
+                        <p class="text-muted">{{ voter.booth_no or 'N/A' }}</p>
+                        
+                        <p><i class="fas fa-mobile-alt text-primary me-2"></i><strong>Mobile Number:</strong></p>
+                        <p class="text-muted">{{ voter.mobile_no or 'N/A' }}</p>
+                        
+                        <p><i class="fas fa-birthday-cake text-primary me-2"></i><strong>Age:</strong></p>
+                        <p class="text-muted">{{ voter.age or 'N/A' }}</p>
+                        
+                        <p><i class="fas fa-venus-mars text-primary me-2"></i><strong>Gender:</strong></p>
+                        <p class="text-muted">{{ voter.gender or 'N/A' }}</p>
+                        
+                        <p><i class="fas fa-id-card text-primary me-2"></i><strong>Voting Card No:</strong></p>
+                        <p class="text-muted">{{ voter.voting_card_no or 'N/A' }}</p>
+                        
+                        <p><i class="fas fa-user text-primary me-2"></i><strong>Karyakarta:</strong></p>
+                        <p class="text-muted">{{ voter.karyakarta or 'N/A' }}</p>
+                        
+                        <p><i class="fas fa-star text-warning me-2"></i><strong>Star Rating:</strong></p>
+                        <p class="text-muted">
+                            <span class="star-rating me-2">{{ voter.get_star_display() }}</span>
+                            <span>({{ voter.star_rating }}/5)</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5><i class="fas fa-sliders-h me-2"></i>Actions</h5>
+            </div>
+            <div class="card-body">
+                {% if current_user.role == 'main' or voter.star_rating == 0 %}
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-star text-warning me-2"></i>Rate this voter:</label>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-warning rate-btn" data-rating="1">★ Rate 1 Star</button>
+                        <button type="button" class="btn btn-outline-warning rate-btn" data-rating="2">★★ Rate 2 Stars</button>
+                        <button type="button" class="btn btn-outline-warning rate-btn" data-rating="3">★★★ Rate 3 Stars</button>
+                        <button type="button" class="btn btn-outline-warning rate-btn" data-rating="4">★★★★ Rate 4 Stars</button>
+                        <button type="button" class="btn btn-outline-warning rate-btn" data-rating="5">★★★★★ Rate 5 Stars</button>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if current_user.role == 'main' and voter.star_rating > 0 %}
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline-danger w-100" id="unstar-btn">
+                        <i class="fas fa-star"></i> Remove Stars
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if current_user.role == 'main' %}
+        <div class="card dashboard-card mt-3">
+            <div class="card-header">
+                <h5><i class="fas fa-history me-2"></i>Star Rating History</h5>
+            </div>
+            <div class="card-body">
+                {% if voter.star_logs %}
+                <div class="list-group list-group-flush">
+                    {% for log in voter.star_logs|sort(attribute='timestamp', reverse=True) %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-{{ 'success' if log.action == 'ADD' else 'primary' if log.action == 'EDIT' else 'danger' }}">
+                                {{ log.action }}
+                            </span>
+                            <small class="text-muted">{{ log.timestamp.strftime('%m/%d %H:%M') }}</small>
+                        </div>
+                        <div class="mt-2">
+                            <small><strong>By:</strong> {{ log.user.username }}</small><br>
+                            {% if log.action == 'ADD' %}
+                                <small><strong>Rating:</strong> {{ log.new_rating }}/5</small>
+                            {% elif log.action == 'EDIT' %}
+                                <small><strong>Changed:</strong> {{ log.old_rating }}/5 → {{ log.new_rating }}/5</small>
+                            {% else %}
+                                <small><strong>Removed:</strong> {{ log.old_rating }}/5 → 0/5</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0"><i class="fas fa-info-circle me-1"></i> No rating history</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="modal-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-action-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    let selectedRating = 0;
+    let actionType = '';
+    
+    // Handle rating buttons
+    $('.rate-btn').click(function() {
+        selectedRating = $(this).data('rating');
+        actionType = 'rate';
+        
+        $('#modal-message').text(`Set rating to ${selectedRating} star${selectedRating > 1 ? 's' : ''}?`);
+        $('#confirmModal').modal('show');
+    });
+    
+    // Handle unstar button
+    $('#unstar-btn').click(function() {
+        actionType = 'unstar';
+        $('#modal-message').text('Remove all stars from this voter?');
+        $('#confirmModal').modal('show');
+    });
+    
+    // Confirm action
+    $('#confirm-action-btn').click(function() {
+        if (actionType === 'rate') {
+            $.ajax({
+                url: `/star/{{ voter.id }}`,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({rating: selectedRating}),
+                success: function(response) {
+                    if (response.success) {
+                        $('.star-rating').html(response.star_display);
+                        $('#confirmModal').modal('hide');
+                        alert(response.message);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error updating rating');
+                }
+            });
+        } else if (actionType === 'unstar') {
+            $.ajax({
+                url: `/unstar/{{ voter.id }}`,
+                method: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        $('.star-rating').html(response.star_display);
+                        $('#confirmModal').modal('hide');
+                        location.reload(); // Reload to update the history
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error removing rating');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

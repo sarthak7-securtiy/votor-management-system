@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block title %}Search Voters - Voter Management System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2><i class="fas fa-search me-2"></i>Search Voters</h2>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('voter.upload_excel') }}" class="btn btn-success action-btn">
+                <i class="fas fa-file-upload me-1"></i> Upload Excel
+            </a>
+            <form method="POST" action="{{ url_for('voter.clear_data') }}" onsubmit="return confirm('Are you sure you want to delete ALL voter data? This cannot be undone!');" style="display: inline;">
+                <button type="submit" class="btn btn-danger action-btn">
+                    <i class="fas fa-trash me-1"></i> Clear All Data
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="search-section">
+    <form method="GET" id="search-form">
+        <div class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-id-card text-primary"></i> Voter ID</label>
+                <input type="text" class="form-control" name="voter_id" placeholder="Enter ID" value="{{ request.args.get('voter_id', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-user text-primary"></i> First Name</label>
+                <input type="text" class="form-control" name="first_name" placeholder="Enter name" value="{{ request.args.get('first_name', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-user-tag text-primary"></i> Surname</label>
+                <input type="text" class="form-control" name="surname" placeholder="Enter surname" value="{{ request.args.get('surname', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-user-friends text-primary"></i> Father Name</label>
+                <input type="text" class="form-control" name="father_name" placeholder="Enter father's name" value="{{ request.args.get('father_name', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-user-circle text-primary"></i> Full Name</label>
+                <input type="text" class="form-control" name="full_name" placeholder="Enter full name" value="{{ request.args.get('full_name', '') }}">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label"><i class="fas fa-hashtag text-primary"></i> Booth No</label>
+                <input type="number" class="form-control" name="booth_no" placeholder="No" value="{{ request.args.get('booth_no', '') }}">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label"><i class="fas fa-mobile-alt text-primary"></i> Mobile</label>
+                <input type="text" class="form-control" name="mobile_no" placeholder="Number" value="{{ request.args.get('mobile_no', '') }}">
+            </div>
+        </div>
+        <div class="row g-3 mt-3">
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-hashtag text-primary"></i> Yadibhag No</label>
+                <input type="text" class="form-control" name="yadibhag_no" placeholder="Enter number" value="{{ request.args.get('yadibhag_no', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-user text-primary"></i> Yadibhag Name</label>
+                <input type="text" class="form-control" name="yadibhag_name" placeholder="Enter name" value="{{ request.args.get('yadibhag_name', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-id-card text-primary"></i> Voter SrNo</label>
+                <input type="text" class="form-control" name="voter_srno" placeholder="Enter serial" value="{{ request.args.get('voter_srno', '') }}">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label"><i class="fas fa-birthday-cake text-primary"></i> Age</label>
+                <input type="number" class="form-control" name="age" placeholder="Age" value="{{ request.args.get('age', '') }}">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label"><i class="fas fa-venus-mars text-primary"></i> Gender</label>
+                <input type="text" class="form-control" name="gender" placeholder="M/F" value="{{ request.args.get('gender', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-id-card text-primary"></i> Voting Card No</label>
+                <input type="text" class="form-control" name="voting_card_no" placeholder="Card number" value="{{ request.args.get('voting_card_no', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-user text-primary"></i> Karyakarta</label>
+                <input type="text" class="form-control" name="karyakarta" placeholder="Enter name" value="{{ request.args.get('karyakarta', '') }}">
+            </div>
+        </div>
+        <div class="row g-3 mt-3">
+            <div class="col-md-12">
+                <label class="form-label"><i class="fas fa-search text-primary"></i> General Search</label>
+                <input type="text" class="form-control" name="query" placeholder="Search in any field" value="{{ request.args.get('query', '') }}">
+            </div>
+        </div>
+        <div class="row g-3 mt-3">
+            <div class="col-md-12 text-center">
+                <button type="submit" class="btn btn-primary action-btn me-2">
+                    <i class="fas fa-search me-1"></i> Search
+                </button>
+                <a href="{{ url_for('voter.search') }}" class="btn btn-secondary action-btn">
+                    <i class="fas fa-undo me-1"></i> Clear
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="search-results">
+    {% if voters %}
+    <div class="row">
+        {% for voter in voters %}
+        <div class="col-md-6 col-lg-4 mb-4" data-voter-id="{{ voter.id }}">
+            <div class="card voter-card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user me-1"></i>{{ voter.get_display_name() }}
+                        {% if voter.star_rating > 0 %}
+                            <span class="star-rating float-end">{{ voter.get_star_display() }}</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="mb-1"><i class="fas fa-id-card text-muted me-1"></i> <strong>ID:</strong></p>
+                            <p class="text-muted mb-2">{{ voter.voter_id }}</p>
+                            {% if voter.booth_no %}
+                            <p class="mb-1"><i class="fas fa-hashtag text-muted me-1"></i> <strong>Booth:</strong></p>
+                            <p class="text-muted mb-2">{{ voter.booth_no }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-6">
+                            {% if voter.mobile_no %}
+                            <p class="mb-1"><i class="fas fa-mobile-alt text-muted me-1"></i> <strong>Mobile:</strong></p>
+                            <p class="text-muted mb-2">{{ voter.mobile_no }}</p>
+                            {% endif %}
+                            {% if voter.father_name %}
+                            <p class="mb-1"><i class="fas fa-user-friends text-muted me-1"></i> <strong>Father:</strong></p>
+                            <p class="text-muted mb-2">{{ voter.father_name }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('voter.voter_detail', voter_id=voter.id) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i> View Details
+                        </a>
+                        <div class="btn-group w-100" role="group">
+                            <button type="button" class="btn btn-outline-warning btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-star me-1"></i> Rate
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item star-rating-btn" href="#" data-voter-id="{{ voter.id }}" data-rating="1">★ Rate 1 Star</a></li>
+                                <li><a class="dropdown-item star-rating-btn" href="#" data-voter-id="{{ voter.id }}" data-rating="2">★★ Rate 2 Stars</a></li>
+                                <li><a class="dropdown-item star-rating-btn" href="#" data-voter-id="{{ voter.id }}" data-rating="3">★★★ Rate 3 Stars</a></li>
+                                <li><a class="dropdown-item star-rating-btn" href="#" data-voter-id="{{ voter.id }}" data-rating="4">★★★★ Rate 4 Stars</a></li>
+                                <li><a class="dropdown-item star-rating-btn" href="#" data-voter-id="{{ voter.id }}" data-rating="5">★★★★★ Rate 5 Stars</a></li>
+                                {% if current_user.role == 'main' and voter.star_rating > 0 %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger unstar-btn" href="#" data-voter-id="{{ voter.id }}">
+                                    <i class="fas fa-star text-danger me-1"></i> Remove Stars
+                                </a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="alert alert-info text-center" id="results-info">
+        <i class="fas fa-users me-1"></i> Showing {{ voters|length }} voter{{ 's' if voters|length != 1 else '' }}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="fas fa-search fa-4x text-muted"></i>
+        </div>
+        <h4 class="text-muted mb-3">No voters found</h4>
+        <p class="text-muted mb-4">Try searching with different keywords or upload voter data using Excel</p>
+        <a href="{{ url_for('voter.upload_excel') }}" class="btn btn-success action-btn">
+            <i class="fas fa-file-upload me-1"></i> Upload Excel Data
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let searchTimeout;
+
+function performRealTimeSearch() {
+    // Clear any existing timeout
+    clearTimeout(searchTimeout);
+    
+    // Set a new timeout to delay the search
+    searchTimeout = setTimeout(function() {
+        // Get form data
+        const formData = {
+            voter_id: $('input[name="voter_id"]').val(),
+            first_name: $('input[name="first_name"]').val(),
+            surname: $('input[name="surname"]').val(),
+            father_name: $('input[name="father_name"]').val(),
+            full_name: $('input[name="full_name"]').val(),
+            booth_no: $('input[name="booth_no"]').val(),
+            mobile_no: $('input[name="mobile_no"]').val(),
+            yadibhag_no: $('input[name="yadibhag_no"]').val(),
+            yadibhag_name: $('input[name="yadibhag_name"]').val(),
+            voter_srno: $('input[name="voter_srno"]').val(),
+            age: $('input[name="age"]').val(),
+            gender: $('input[name="gender"]').val(),
+            voting_card_no: $('input[name="voting_card_no"]').val(),
+            karyakarta: $('input[name="karyakarta"]').val(),
+            query: $('input[name="query"]').val()
+        };
+        
+        // Remove empty values
+        for (let key in formData) {
+            if (formData[key] === '') {
+                delete formData[key];
+            }
+        }
+        
+        // Perform AJAX search
+        $.ajax({
+            url: '{{ url_for("voter.search") }}',
+            type: 'GET',
+            data: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.voters) {
+                    updateSearchResults(response.voters);
+                }
+            },
+            error: function() {
+                console.log('Error performing real-time search');
+            }
+        });
+    }, 500); // 500ms delay
+}
+
+function updateSearchResults(voters) {
+    let html = '';
+    
+    if (voters.length > 0) {
+        html += '<div class="row">';
+        
+        for (let i = 0; i < voters.length; i++) {
+            const voter = voters[i];
+            
+            html += `
+<div class="col-md-6 col-lg-4 mb-4" data-voter-id="${voter.id}">
+    <div class="card voter-card h-100">
+        <div class="card-header bg-light">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-user me-1"></i>${voter.full_name || voter.first_name || voter.voter_id}
+                ${voter.star_rating > 0 ? '<span class="star-rating float-end">' + voter.star_display + '</span>' : ''}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-6">
+                    <p class="mb-1"><i class="fas fa-id-card text-muted me-1"></i> <strong>ID:</strong></p>
+                    <p class="text-muted mb-2">${voter.voter_id}</p>
+                    ${voter.booth_no ? `
+                    <p class="mb-1"><i class="fas fa-hashtag text-muted me-1"></i> <strong>Booth:</strong></p>
+                    <p class="text-muted mb-2">${voter.booth_no}</p>
+                    ` : ''}
+                </div>
+                <div class="col-6">
+                    ${voter.mobile_no ? `
+                    <p class="mb-1"><i class="fas fa-mobile-alt text-muted me-1"></i> <strong>Mobile:</strong></p>
+                    <p class="text-muted mb-2">${voter.mobile_no}</p>
+                    ` : ''}
+                    ${voter.father_name ? `
+                    <p class="mb-1"><i class="fas fa-user-friends text-muted me-1"></i> <strong>Father:</strong></p>
+                    <p class="text-muted mb-2">${voter.father_name}</p>
+                    ` : ''}
+                </div>
+                <div class="col-12">
+                    ${voter.yadibhag_name ? `
+                    <p class="mb-1 small"><i class="fas fa-user text-muted me-1"></i> <strong>Yadibhag:</strong> ${voter.yadibhag_name}</p>
+                    ` : ''}
+                    ${voter.voter_srno ? `
+                    <p class="mb-1 small"><i class="fas fa-id-card text-muted me-1"></i> <strong>SrNo:</strong> ${voter.voter_srno}</p>
+                    ` : ''}
+                    ${voter.age && voter.age > 0 ? `
+                    <p class="mb-1 small"><i class="fas fa-birthday-cake text-muted me-1"></i> <strong>Age:</strong> ${voter.age}</p>
+                    ` : ''}
+                    ${voter.gender ? `
+                    <p class="mb-1 small"><i class="fas fa-venus-mars text-muted me-1"></i> <strong>Gender:</strong> ${voter.gender}</p>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+        <div class="card-footer bg-light">
+            <div class="d-grid gap-2">
+                <a href="/voter/${voter.id}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-eye me-1"></i> View Details
+                </a>
+                <div class="btn-group w-100" role="group">
+                    <button type="button" class="btn btn-outline-warning btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-star me-1"></i> Rate
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item star-rating-btn" href="#" data-voter-id="${voter.id}" data-rating="1">★ Rate 1 Star</a></li>
+                        <li><a class="dropdown-item star-rating-btn" href="#" data-voter-id="${voter.id}" data-rating="2">★★ Rate 2 Stars</a></li>
+                        <li><a class="dropdown-item star-rating-btn" href="#" data-voter-id="${voter.id}" data-rating="3">★★★ Rate 3 Stars</a></li>
+                        <li><a class="dropdown-item star-rating-btn" href="#" data-voter-id="${voter.id}" data-rating="4">★★★★ Rate 4 Stars</a></li>
+                        <li><a class="dropdown-item star-rating-btn" href="#" data-voter-id="${voter.id}" data-rating="5">★★★★★ Rate 5 Stars</a></li>
+                        ${'{{ current_user.role }}' === 'main' && voter.star_rating > 0 ? `
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger unstar-btn" href="#" data-voter-id="${voter.id}">
+                            <i class="fas fa-star text-danger me-1"></i> Remove Stars
+                        </a></li>
+                        ` : ''}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>`;
+        }
+        
+        html += '</div>';
+        
+        // Update the results section
+        $('#search-results').html(html);
+        
+        // Update results count
+        $('#results-info').html(`<i class="fas fa-users me-1"></i> Showing ${voters.length} voter${voters.length !== 1 ? 's' : ''}`);
+    } else {
+        $('#search-results').html(`
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-search fa-4x text-muted"></i>
+                </div>
+                <h4 class="text-muted mb-3">No voters found</h4>
+                <p class="text-muted mb-4">Try searching with different keywords or upload voter data using Excel</p>
+                <a href="{{ url_for('voter.upload_excel') }}" class="btn btn-success action-btn">
+                    <i class="fas fa-file-upload me-1"></i> Upload Excel Data
+                </a>
+            </div>
+        `);
+        
+        $('#results-info').html('No voters found');
+    }
+}
+
+$(document).ready(function() {
+    // Add real-time search functionality to all input fields
+    $('input[name="voter_id"], input[name="first_name"], input[name="surname"], input[name="father_name"], input[name="full_name"], input[name="booth_no"], input[name="mobile_no"], input[name="yadibhag_no"], input[name="yadibhag_name"], input[name="voter_srno"], input[name="age"], input[name="gender"], input[name="voting_card_no"], input[name="karyakarta"], input[name="query"]').on('input', function() {
+        performRealTimeSearch();
+    });
+    
+    // Handle initial results display if any
+    const initialVoters = [];
+    {% if voters %}
+        {% for voter in voters %}
+            initialVoters.push({
+                id: {{ voter.id }},
+                voter_id: "{{ voter.voter_id }}",
+                first_name: "{{ voter.first_name }}",
+                father_name: "{{ voter.father_name }}",
+                surname: "{{ voter.surname }}",
+                full_name: "{{ voter.full_name }}",
+                booth_no: {{ voter.booth_no if voter.booth_no else 0 }},
+                mobile_no: "{{ voter.mobile_no }}",
+                yadibhag_no: "{{ voter.yadibhag_no }}",
+                yadibhag_name: "{{ voter.yadibhag_name }}",
+                voter_srno: "{{ voter.voter_srno }}",
+                age: {{ voter.age if voter.age else 0 }},
+                gender: "{{ voter.gender }}",
+                voting_card_no: "{{ voter.voting_card_no }}",
+                karyakarta: "{{ voter.karyakarta }}",
+                star_display: "{{ voter.get_star_display()|safe }}",
+                star_rating: {{ voter.star_rating }}
+            });
+        {% endfor %}
+        
+        if (initialVoters.length > 0) {
+            updateSearchResults(initialVoters);
+        }
+    {% endif %}
+    
+    // Handle star rating buttons
+    $(document).on('click', '.star-rating-btn', function(e) {
+        e.preventDefault();
+        const voterId = $(this).data('voter-id');
+        const rating = $(this).data('rating');
+        
+        $('#voter-id').val(voterId);
+        $('#selected-rating').val(rating);
+        $('#star-rating-display').text('★'.repeat(rating));
+        
+        $('#starModal').modal('show');
+    });
+    
+    // Handle unstar button
+    $(document).on('click', '.unstar-btn', function(e) {
+        e.preventDefault();
+        const voterId = $(this).data('voter-id');
+        
+        if (confirm('Are you sure you want to remove all stars from this voter?')) {
+            $.ajax({
+                url: `/unstar/${voterId}`,
+                method: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        // Update the star display on the page
+                        $(`.card[data-voter-id="${voterId}"]`).find('.star-rating').first().html(response.star_display);
+                        alert(response.message);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error removing rating');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
