@@ -314,9 +314,6 @@ def search():
     # Get all search parameters
     query = request.args.get('query', '')
     voter_id = request.args.get('voter_id', '')
-    first_name = request.args.get('first_name', '')
-    surname = request.args.get('surname', '')
-    father_name = request.args.get('father_name', '')
     full_name = request.args.get('full_name', '')
     booth_no = request.args.get('booth_no', '')
     mobile_no = request.args.get('mobile_no', '')
@@ -332,19 +329,14 @@ def search():
     search_query = Voter.query
     
     # Check if any search parameter is provided
-    if any([query, voter_id, first_name, surname, father_name, full_name, booth_no, mobile_no]):
+    if any([query, voter_id, full_name, booth_no, mobile_no, voting_card_no, yadibhag_no, yadibhag_name, voter_srno, age, gender, karyakarta]):
         # Create a list of OR conditions
         or_conditions = []
         
         # Add individual field filters if provided
         if voter_id:
-            or_conditions.append(Voter.voter_id.ilike(f'%{voter_id}%'))
-        if first_name:
-            or_conditions.append(Voter.first_name.ilike(f'%{first_name}%'))
-        if surname:
-            or_conditions.append(Voter.surname.ilike(f'%{surname}%'))
-        if father_name:
-            or_conditions.append(Voter.father_name.ilike(f'%{father_name}%'))
+            # For voter_id, use exact match
+            or_conditions.append(Voter.voter_id == voter_id)
         if full_name:
             or_conditions.append(Voter.full_name.ilike(f'%{full_name}%'))
         if mobile_no:
@@ -376,7 +368,8 @@ def search():
         if gender:
             or_conditions.append(Voter.gender.ilike(f'%{gender}%'))
         if voting_card_no:
-            or_conditions.append(Voter.voting_card_no.ilike(f'%{voting_card_no}%'))
+            # For voting card number, use exact match
+            or_conditions.append(Voter.voting_card_no == voting_card_no)
         if karyakarta:
             or_conditions.append(Voter.karyakarta.ilike(f'%{karyakarta}%'))
         
@@ -384,15 +377,11 @@ def search():
         if query:
             general_conditions = db.or_(
                 Voter.voter_id.ilike(f'%{query}%'),
-                Voter.first_name.ilike(f'%{query}%'),
-                Voter.father_name.ilike(f'%{query}%'),
-                Voter.surname.ilike(f'%{query}%'),
                 Voter.full_name.ilike(f'%{query}%'),
                 Voter.mobile_no.ilike(f'%{query}%'),
                 Voter.yadibhag_no.ilike(f'%{query}%'),
                 Voter.yadibhag_name.ilike(f'%{query}%'),
                 Voter.voter_srno.ilike(f'%{query}%'),
-                Voter.voting_card_no.ilike(f'%{query}%'),
                 Voter.karyakarta.ilike(f'%{query}%')
             )
             # If both specific and general filters exist, combine them with OR

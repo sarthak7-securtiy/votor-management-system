@@ -26,19 +26,7 @@
                 <label class="form-label"><i class="fas fa-id-card text-primary"></i> Voter ID</label>
                 <input type="text" class="form-control" name="voter_id" placeholder="Enter ID" value="{{ request.args.get('voter_id', '') }}">
             </div>
-            <div class="col-md-2">
-                <label class="form-label"><i class="fas fa-user text-primary"></i> First Name</label>
-                <input type="text" class="form-control" name="first_name" placeholder="Enter name" value="{{ request.args.get('first_name', '') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label"><i class="fas fa-user-tag text-primary"></i> Surname</label>
-                <input type="text" class="form-control" name="surname" placeholder="Enter surname" value="{{ request.args.get('surname', '') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label"><i class="fas fa-user-friends text-primary"></i> Father Name</label>
-                <input type="text" class="form-control" name="father_name" placeholder="Enter father's name" value="{{ request.args.get('father_name', '') }}">
-            </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <label class="form-label"><i class="fas fa-user-circle text-primary"></i> Full Name</label>
                 <input type="text" class="form-control" name="full_name" placeholder="Enter full name" value="{{ request.args.get('full_name', '') }}">
             </div>
@@ -46,12 +34,24 @@
                 <label class="form-label"><i class="fas fa-hashtag text-primary"></i> Booth No</label>
                 <input type="number" class="form-control" name="booth_no" placeholder="No" value="{{ request.args.get('booth_no', '') }}">
             </div>
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <label class="form-label"><i class="fas fa-mobile-alt text-primary"></i> Mobile</label>
                 <input type="text" class="form-control" name="mobile_no" placeholder="Number" value="{{ request.args.get('mobile_no', '') }}">
             </div>
         </div>
         <div class="row g-3 mt-3">
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-birthday-cake text-primary"></i> Age</label>
+                <input type="number" class="form-control" name="age" placeholder="Age" value="{{ request.args.get('age', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-venus-mars text-primary"></i> Gender</label>
+                <input type="text" class="form-control" name="gender" placeholder="M/F" value="{{ request.args.get('gender', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-id-card text-primary"></i> Voter SrNo</label>
+                <input type="text" class="form-control" name="voter_srno" placeholder="Enter serial" value="{{ request.args.get('voter_srno', '') }}">
+            </div>
             <div class="col-md-2">
                 <label class="form-label"><i class="fas fa-hashtag text-primary"></i> Yadibhag No</label>
                 <input type="text" class="form-control" name="yadibhag_no" placeholder="Enter number" value="{{ request.args.get('yadibhag_no', '') }}">
@@ -61,30 +61,18 @@
                 <input type="text" class="form-control" name="yadibhag_name" placeholder="Enter name" value="{{ request.args.get('yadibhag_name', '') }}">
             </div>
             <div class="col-md-2">
-                <label class="form-label"><i class="fas fa-id-card text-primary"></i> Voter SrNo</label>
-                <input type="text" class="form-control" name="voter_srno" placeholder="Enter serial" value="{{ request.args.get('voter_srno', '') }}">
-            </div>
-            <div class="col-md-1">
-                <label class="form-label"><i class="fas fa-birthday-cake text-primary"></i> Age</label>
-                <input type="number" class="form-control" name="age" placeholder="Age" value="{{ request.args.get('age', '') }}">
-            </div>
-            <div class="col-md-1">
-                <label class="form-label"><i class="fas fa-venus-mars text-primary"></i> Gender</label>
-                <input type="text" class="form-control" name="gender" placeholder="M/F" value="{{ request.args.get('gender', '') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label"><i class="fas fa-id-card text-primary"></i> Voting Card No</label>
-                <input type="text" class="form-control" name="voting_card_no" placeholder="Card number" value="{{ request.args.get('voting_card_no', '') }}">
-            </div>
-            <div class="col-md-2">
                 <label class="form-label"><i class="fas fa-user text-primary"></i> Karyakarta</label>
                 <input type="text" class="form-control" name="karyakarta" placeholder="Enter name" value="{{ request.args.get('karyakarta', '') }}">
             </div>
         </div>
         <div class="row g-3 mt-3">
-            <div class="col-md-12">
+            <div class="col-md-10">
                 <label class="form-label"><i class="fas fa-search text-primary"></i> General Search</label>
                 <input type="text" class="form-control" name="query" placeholder="Search in any field" value="{{ request.args.get('query', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="fas fa-id-card text-primary"></i> Voting Card No</label>
+                <input type="text" class="form-control" name="voting_card_no" placeholder="Card number" value="{{ request.args.get('voting_card_no', '') }}">
             </div>
         </div>
         <div class="row g-3 mt-3">
@@ -129,10 +117,7 @@
                             <p class="mb-1"><i class="fas fa-mobile-alt text-muted me-1"></i> <strong>Mobile:</strong></p>
                             <p class="text-muted mb-2">{{ voter.mobile_no }}</p>
                             {% endif %}
-                            {% if voter.father_name %}
-                            <p class="mb-1"><i class="fas fa-user-friends text-muted me-1"></i> <strong>Father:</strong></p>
-                            <p class="text-muted mb-2">{{ voter.father_name }}</p>
-                            {% endif %}
+
                         </div>
                     </div>
                 </div>
@@ -197,9 +182,6 @@ function performRealTimeSearch() {
         // Get form data
         const formData = {
             voter_id: $('input[name="voter_id"]').val(),
-            first_name: $('input[name="first_name"]').val(),
-            surname: $('input[name="surname"]').val(),
-            father_name: $('input[name="father_name"]').val(),
             full_name: $('input[name="full_name"]').val(),
             booth_no: $('input[name="booth_no"]').val(),
             mobile_no: $('input[name="mobile_no"]').val(),
@@ -254,7 +236,7 @@ function updateSearchResults(voters) {
     <div class="card voter-card h-100">
         <div class="card-header bg-light">
             <h5 class="card-title mb-0">
-                <i class="fas fa-user me-1"></i>${voter.full_name || voter.first_name || voter.voter_id}
+                <i class="fas fa-user me-1"></i>${voter.full_name || voter.voter_id}
                 ${voter.star_rating > 0 ? '<span class="star-rating float-end">' + voter.star_display + '</span>' : ''}
             </h5>
         </div>
@@ -272,10 +254,6 @@ function updateSearchResults(voters) {
                     ${voter.mobile_no ? `
                     <p class="mb-1"><i class="fas fa-mobile-alt text-muted me-1"></i> <strong>Mobile:</strong></p>
                     <p class="text-muted mb-2">${voter.mobile_no}</p>
-                    ` : ''}
-                    ${voter.father_name ? `
-                    <p class="mb-1"><i class="fas fa-user-friends text-muted me-1"></i> <strong>Father:</strong></p>
-                    <p class="text-muted mb-2">${voter.father_name}</p>
                     ` : ''}
                 </div>
                 <div class="col-12">
@@ -350,7 +328,7 @@ function updateSearchResults(voters) {
 
 $(document).ready(function() {
     // Add real-time search functionality to all input fields
-    $('input[name="voter_id"], input[name="first_name"], input[name="surname"], input[name="father_name"], input[name="full_name"], input[name="booth_no"], input[name="mobile_no"], input[name="yadibhag_no"], input[name="yadibhag_name"], input[name="voter_srno"], input[name="age"], input[name="gender"], input[name="voting_card_no"], input[name="karyakarta"], input[name="query"]').on('input', function() {
+    $('input[name="voter_id"], input[name="full_name"], input[name="booth_no"], input[name="mobile_no"], input[name="yadibhag_no"], input[name="yadibhag_name"], input[name="voter_srno"], input[name="age"], input[name="gender"], input[name="voting_card_no"], input[name="karyakarta"], input[name="query"]').on('input', function() {
         performRealTimeSearch();
     });
     
@@ -361,9 +339,6 @@ $(document).ready(function() {
             initialVoters.push({
                 id: {{ voter.id }},
                 voter_id: "{{ voter.voter_id }}",
-                first_name: "{{ voter.first_name }}",
-                father_name: "{{ voter.father_name }}",
-                surname: "{{ voter.surname }}",
                 full_name: "{{ voter.full_name }}",
                 booth_no: {{ voter.booth_no if voter.booth_no else 0 }},
                 mobile_no: "{{ voter.mobile_no }}",
