@@ -3,7 +3,7 @@ services:
     name: voter-management-system
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT wsgi:app
+    startCommand: gunicorn --config gunicorn.conf.py --bind 0.0.0.0:$PORT wsgi:app
     region: oregon
     pythonVersion: '3.11'
     envVars:
