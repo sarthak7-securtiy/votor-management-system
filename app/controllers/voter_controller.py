@@ -456,12 +456,10 @@ def upload_excel():
         
         if file and allowed_file(file.filename):
             try:
-                # Save file temporarily
+                # Save file temporarily in the system's temp directory
+                import tempfile
                 filename = secure_filename(file.filename)
-                temp_path = os.path.join('temp', filename)
-                
-                # Create temp directory if it doesn't exist
-                os.makedirs('temp', exist_ok=True)
+                temp_path = os.path.join(tempfile.gettempdir(), filename)
                 
                 file.save(temp_path)
                 
@@ -504,7 +502,11 @@ def upload_excel():
                 db.session.commit()
                 
                 # Clean up temp file
-                os.remove(temp_path)
+                try:
+                    os.remove(temp_path)
+                except OSError:
+                    # File might have already been removed or inaccessible
+                    pass
                 
                 success_count = len(new_voters)
                 flash(f'Upload successful! Added {success_count} new voters', 'success')
@@ -579,15 +581,10 @@ def star_report():
         # Create DataFrame and generate Excel file
         df = pd.DataFrame(report_data)
         
-        # Create a temporary file
+        # Create a temporary file in system temp directory
         temp_filename = f"star_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-        
-        # Create temp directory if it doesn't exist using absolute path
-        temp_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'temp')
-        os.makedirs(temp_dir, exist_ok=True)
-        
-        # Update the temp_path to use the absolute path
-        temp_path = os.path.join(temp_dir, temp_filename)
+        import tempfile
+        temp_path = os.path.join(tempfile.gettempdir(), temp_filename)
         
         # Save to Excel
         with pd.ExcelWriter(temp_path, engine='openpyxl') as writer:
@@ -605,6 +602,12 @@ def star_report():
         # Send the file as a download
         return send_file(temp_path, as_attachment=True, download_name=temp_filename)
     except Exception as e:
+        # Clean up temp file if it exists
+        try:
+            if 'temp_path' in locals() and os.path.exists(temp_path):
+                os.remove(temp_path)
+        except:
+            pass  # Ignore cleanup errors
         flash(f'Error generating star report: {str(e)}', 'error')
         return redirect(url_for('voter.search'))
 
