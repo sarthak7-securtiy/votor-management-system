@@ -3,7 +3,7 @@ services:
     name: voter-management-system
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --timeout 600 --workers 1 --worker-class sync --max-requests 25 --max-requests-jitter 5 --keep-alive 10 --preload-app --bind 0.0.0.0:$PORT wsgi:app
+    startCommand: gunicorn --timeout 600 --workers 1 --worker-class sync --max-requests 10 --max-requests-jitter 2 --keep-alive 15 --preload-app --bind 0.0.0.0:$PORT wsgi:app
     region: oregon
     pythonVersion: '3.11'
     envVars:
